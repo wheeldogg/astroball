@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# CSV Output Files
+data/
+
+# Virtual Environment
+.env
+.venv/

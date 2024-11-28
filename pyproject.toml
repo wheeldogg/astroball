@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "team-balancer"
+version = "0.1.0"
+description = "A Python tool to generate balanced soccer teams using player data and machine learning."
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "^1.4"
+numpy = "^1.21"
+scikit-learn = "^1.0"
+faker = "^18.9"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
