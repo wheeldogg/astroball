@@ -2,6 +2,13 @@
 
 Astroball 7 and 8 a side soccer team generator
 
+Run it like this
+
+`poetry run python team_balancer/team_balancer.py 7 Player1 Player2 Player3`
+
+Note: need to add 14 players in the list above for 7 a side.
+Will also work for 8 and 9 a side.
+
 Setup Instructions for New Users
 Clone the Repository:
 
