@@ -326,8 +326,38 @@ def simulate_runs(players, player_stats, model, runs=10, team_size=7):
     for idx, balanced in enumerate(top_balanced, start=1):
         print(f"\nBalanced Team {idx}: Run {balanced['run']}")
         print(f"Difference: {balanced['difference']:.1f}")
-        print("Team A Players:", ", ".join(balanced["team_a"]["Player"].tolist()))
-        print("Team B Players:", ", ".join(balanced["team_b"]["Player"].tolist()))
+
+        # Format Team A Players and Roles
+        team_a_players_roles = [
+            f"{row['Player']} ({row['Role']})"
+            for _, row in balanced["team_a"].iterrows()
+        ]
+        team_a_names = balanced["team_a"]["Player"].tolist()  # Names-only list
+        team_a_role_counts = balanced["team_a"]["Role"].value_counts().to_dict()
+        print("Team A Players (with roles):", ", ".join(team_a_players_roles))
+        print("Team A Players (names only):", ", ".join(team_a_names))
+        print(
+            "Team A Role Counts:",
+            ", ".join(
+                [f"{role}: {count}" for role, count in team_a_role_counts.items()]
+            ),
+        )
+
+        # Format Team B Players and Roles
+        team_b_players_roles = [
+            f"{row['Player']} ({row['Role']})"
+            for _, row in balanced["team_b"].iterrows()
+        ]
+        team_b_names = balanced["team_b"]["Player"].tolist()  # Names-only list
+        team_b_role_counts = balanced["team_b"]["Role"].value_counts().to_dict()
+        print("Team B Players (with roles):", ", ".join(team_b_players_roles))
+        print("Team B Players (names only):", ", ".join(team_b_names))
+        print(
+            "Team B Role Counts:",
+            ", ".join(
+                [f"{role}: {count}" for role, count in team_b_role_counts.items()]
+            ),
+        )
 
     # Prompt the user to select one of the top 3 teams
     selected_team_idx = int(input("\nSelect a team from the top 3 (1, 2, or 3): ")) - 1
