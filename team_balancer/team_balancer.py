@@ -18,7 +18,7 @@ HISTORICAL_RESULTS_FILE = "data/historical_results.csv"
 TEAMS_FILE = "data/teams.csv"
 
 # Globals
-VERBOSE = True
+VERBOSE = False
 FACTORS_TO_USE = ["Overall", "Defense", "Attack", "Stamina", "Versatility", "Role"]
 ANNOTATE_PLAYERS_ON_PLOT = False
 
@@ -159,7 +159,8 @@ def balance_teams(player_data, strength_threshold=10, protected_players=None):
 
     # Final check
     final_difference = abs(team_a["Strength"].sum() - team_b["Strength"].sum())
-    print(f"Final strength difference after balancing: {final_difference:.1f}")
+    if VERBOSE:
+        print(f"Final strength difference after balancing: {final_difference:.1f}")
     return team_a, team_b
 
 
