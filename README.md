@@ -70,33 +70,35 @@ Use `--demo` flag to run with some dummy data
 Will show 3 output teams.
 
 
-Balanced Team 1:
-Team A:
-       Player        Role  Overall  Defense  Attack  Strength
-0     Player1     Forward        9      NaN     NaN       NaN
-2     Player2    Defender        6      6.0     5.0     11.40
-4     Player3     Forward        8      NaN     NaN       NaN
-6     Player4     Forward        7      NaN     NaN       NaN
-8     Player5  Midfielder        9      8.0     7.0     15.35
-10    Player6  Midfielder        8      NaN     NaN       NaN
-12    Player7  Midfielder        9      6.0     9.0     15.35
-14    Player8    Defender        6      7.0     4.0     11.15
-Total Strength: 53.2
 
-Team B:
-       Player        Role  Overall  Defense  Attack  Strength
-1      Player9    Defender        7      7.0     6.0     12.55
-3      Player10   Defender        7      NaN     NaN       NaN
-5      Player11     Forward        8      6.0     8.0     14.20
-7      Player12  Midfielder        6      NaN     NaN       NaN
-9      Player13  Midfielder        9      NaN     NaN       NaN
-11     Player14     Forward        8      6.0     8.0     13.70
-13     Player15   Defender        5      NaN     NaN       NaN
-15     Player16  Midfielder        7      5.0     6.0     12.55
-Total Strength: 53.0
-Strength Difference: 0.2
+### Team A
+| Player     | Role        | Overall | Defense | Attack | Strength |
+|------------|-------------|---------|---------|--------|----------|
+| Player1    | Forward     | 9       | NaN     | NaN    | NaN      |
+| Player2    | Defender    | 6       | 6.0     | 5.0    | 11.40    |
+| Player3    | Forward     | 8       | NaN     | NaN    | NaN      |
+| Player4    | Forward     | 7       | NaN     | NaN    | NaN      |
+| Player5    | Midfielder  | 9       | 8.0     | 7.0    | 15.35    |
+| Player6    | Midfielder  | 8       | NaN     | NaN    | NaN      |
+| Player7    | Midfielder  | 9       | 6.0     | 9.0    | 15.35    |
+| Player8    | Defender    | 6       | 7.0     | 4.0    | 11.15    |
+| **Total Strength** |             |         |         |          | **53.2** |
 
+### Team B
+| Player     | Role        | Overall | Defense | Attack | Strength |
+|------------|-------------|---------|---------|--------|----------|
+| Player9    | Defender    | 7       | 7.0     | 6.0    | 12.55    |
+| Player10   | Defender    | 7       | NaN     | NaN    | NaN      |
+| Player11   | Forward     | 8       | 6.0     | 8.0    | 14.20    |
+| Player12   | Midfielder  | 6       | NaN     | NaN    | NaN      |
+| Player13   | Midfielder  | 9       | NaN     | NaN    | NaN      |
+| Player14   | Forward     | 8       | 6.0     | 8.0    | 13.70    |
+| Player15   | Defender    | 5       | NaN     | NaN    | NaN      |
+| Player16   | Midfielder  | 7       | 5.0     | 6.0    | 12.55    |
+| **Total Strength** |             |         |         |          | **53.0** |
 
+### Strength Difference
+**0.2**
 ## Historical results
 
 Can record these like this
