@@ -36,7 +36,7 @@ Updated data/player_stats.csv if new players were added or stats were learned.
 
 ## Output plot
 
-![Simulation Example](public/png/fig_example.png)
+![Simulation Example](public/png/fig_team_permuts.png)
 
 ## Input data
 
