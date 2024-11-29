@@ -18,9 +18,9 @@ HISTORICAL_RESULTS_FILE = "data/historical_results.csv"
 TEAMS_FILE = "data/teams.csv"
 
 # Globals
-VERBOSE = False
+VERBOSE = True
 FACTORS_TO_USE = ["Overall", "Defense", "Attack", "Stamina", "Versatility", "Role"]
-LABEL_PLAYERS_ON_PLOT = True
+ANNOTATE_PLAYERS_ON_PLOT = False
 
 
 # Function to load or create player stats
@@ -159,8 +159,7 @@ def balance_teams(player_data, strength_threshold=10, protected_players=None):
 
     # Final check
     final_difference = abs(team_a["Strength"].sum() - team_b["Strength"].sum())
-    if VERBOSE:
-        print(f"Final strength difference after balancing: {final_difference:.1f}")
+    print(f"Final strength difference after balancing: {final_difference:.1f}")
     return team_a, team_b
 
 
@@ -258,17 +257,17 @@ def predict_outcome(model, team_a, team_b):
 def simulate_runs(players, player_stats, model, runs=10, team_size=7):
     """
     Simulate multiple runs of team balancing and predictions, tracking the most balanced
-    team and the run closest to 50-50 win probabilities.
+    team and plotting team strengths and their difference over runs.
     """
     team_a_wins = 0
     team_b_wins = 0
     total_players = team_size * 2  # Calculate the total number of players needed
 
     results = []
-    top_balanced = []  # List to store the top balanced teams
+    strengths_over_runs = []  # Track Team A, Team B strengths, and their difference
 
-    # Track the run closest to 50-50 win probabilities
-    closest_to_50_50 = {"run": None, "team_a_prob": None, "difference": float("inf")}
+    # Track the top 3 permutations with the minimal strength difference
+    top_balanced = []
 
     for i in range(runs):
         # Generate balanced teams for each run
@@ -285,36 +284,29 @@ def simulate_runs(players, player_stats, model, runs=10, team_size=7):
         strength_a = team_a["Strength"].sum()
         strength_b = team_b["Strength"].sum()
         difference = abs(strength_a - strength_b)
+
         if VERBOSE:
             print(
                 f"Run {i+1}: Team A Strength = {strength_a:.1f}, Team B Strength = {strength_b:.1f}, Difference = {difference:.1f}"
             )
 
-        # Add the current teams to the list of top balanced teams
+        # Track the top 3 most balanced runs
         top_balanced.append(
             {
+                "run": i + 1,
                 "difference": difference,
+                "team_a_strength": strength_a,
+                "team_b_strength": strength_b,
                 "team_a": team_a.copy(),
                 "team_b": team_b.copy(),
-                "run": i + 1,  # Store the run number for annotation
             }
         )
-
-        # Keep only the top 3 most balanced teams
         top_balanced = sorted(top_balanced, key=lambda x: x["difference"])[:3]
 
-        # Track the run closest to 50-50 probabilities
-        prob_difference = abs(prediction - 0.5)
-        if VERBOSE:
-            print(
-                f"Run {i+1}: Team A Prob = {prediction:.3f}, Diff from 50% = {prob_difference:.3f}"
-            )
-        if prob_difference < closest_to_50_50["difference"]:
-            closest_to_50_50["difference"] = prob_difference
-            closest_to_50_50["run"] = i + 1
-            closest_to_50_50["team_a_prob"] = prediction
+        # Record strengths for plotting
+        strengths_over_runs.append((i + 1, strength_a, strength_b, difference))
 
-        # Collect results for analysis and plotting
+        # Collect results for analysis
         results.append((i + 1, prediction, winner, team_a, team_b))
 
         # Track wins
@@ -323,11 +315,6 @@ def simulate_runs(players, player_stats, model, runs=10, team_size=7):
         else:
             team_b_wins += 1
 
-    # Debug: Verify closest_to_50_50
-    print(
-        f"Closest to 50-50 Run: {closest_to_50_50['run']}, Prob Diff: {closest_to_50_50['difference']:.3f}"
-    )
-
     # Print simulation summary
     print(f"\nSimulation Results ({runs} Runs):")
     print(f"Team A Wins: {team_a_wins}")
@@ -335,84 +322,75 @@ def simulate_runs(players, player_stats, model, runs=10, team_size=7):
 
     # Display the top 3 most balanced teams
     print("\nTop 3 Most Balanced Team Compositions:")
-    for idx, balanced_team in enumerate(top_balanced, start=1):
-        print(f"\nBalanced Team {idx}:")
-        team_a_summary = balanced_team["team_a"].copy()
-        team_b_summary = balanced_team["team_b"].copy()
+    for idx, balanced in enumerate(top_balanced, start=1):
+        print(f"\nBalanced Team {idx}: Run {balanced['run']}")
+        print(f"Difference: {balanced['difference']:.1f}")
+        print("Team A Players:", ", ".join(balanced["team_a"]["Player"].tolist()))
+        print("Team B Players:", ", ".join(balanced["team_b"]["Player"].tolist()))
 
-        # Ensure we use the correct columns
-        if "Player" not in team_a_summary.columns:
-            team_a_summary["Player"] = team_a_summary.index
-        if "Player" not in team_b_summary.columns:
-            team_b_summary["Player"] = team_b_summary.index
-
-        # Reorder columns to show 'Player' alongside their attributes
-        team_a_summary = team_a_summary[
-            ["Player", "Role", "Overall", "Defense", "Attack", "Strength"]
-        ]
-        team_b_summary = team_b_summary[
-            ["Player", "Role", "Overall", "Defense", "Attack", "Strength"]
-        ]
-
-        print("Team A:")
-        print(team_a_summary)
-        print(f"Total Strength: {team_a_summary['Strength'].sum():.1f}")
-        print("\nTeam B:")
-        print(team_b_summary)
-        print(f"Total Strength: {team_b_summary['Strength'].sum():.1f}")
-        print(f"Strength Difference: {balanced_team['difference']:.1f}")
-
-    # Let the user select one of the top 3 teams
+    # Prompt the user to select one of the top 3 teams
     selected_team_idx = int(input("\nSelect a team from the top 3 (1, 2, or 3): ")) - 1
     selected_team = top_balanced[selected_team_idx]
 
-    # Prepare data for plotting
-    x = list(range(1, runs + 1))
-    team_a_probs = [result[1] for result in results]  # Team A win probabilities
-    team_b_probs = [1 - prob for prob in team_a_probs]  # Team B win probabilities
+    # Plot Team Strengths and Differences
+    x = [entry[0] for entry in strengths_over_runs]  # Run numbers
+    team_a_strengths = [entry[1] for entry in strengths_over_runs]
+    team_b_strengths = [entry[2] for entry in strengths_over_runs]
+    strength_differences = [entry[3] for entry in strengths_over_runs]
 
-    # Plot results
-    plt.figure(figsize=(10, 6))
-    plt.plot(x, team_a_probs, marker="o", label="Team A Win Probability", color="blue")
-    plt.plot(x, team_b_probs, marker="o", label="Team B Win Probability", color="green")
-    plt.axhline(0.5, color="r", linestyle="--", label="50% Threshold")
-    plt.title("Prediction Across Multiple Simulations")
-    plt.xlabel("Simulation #")
-    plt.ylabel("Win Probability")
-    plt.legend()
+    plt.figure(figsize=(12, 6))
+    plt.plot(x, team_a_strengths, marker="o", label="Team A Strength", color="blue")
+    plt.plot(x, team_b_strengths, marker="o", label="Team B Strength", color="green")
+    plt.plot(
+        x,
+        strength_differences,
+        marker="o",
+        label="Strength Difference",
+        color="red",
+        linestyle="--",
+    )
 
-    # Annotate the run closest to 50-50 probabilities
-    if closest_to_50_50["run"] is not None:
-        run_idx = (
-            closest_to_50_50["run"] - 1
-        )  # Convert to 0-based index for accessing lists
-        prob_team_a = closest_to_50_50["team_a_prob"]
+    # Annotate the selected run
+    selected_run = selected_team["run"]
+    selected_diff = selected_team["difference"]
+    team_a_players = ", ".join(selected_team["team_a"]["Player"].tolist())
+    team_b_players = ", ".join(selected_team["team_b"]["Player"].tolist())
 
-        # Adjust label position slightly based on the y-value to avoid overlap
-        y_offset = 0.02 if prob_team_a > 0.5 else -0.02
+    # Get the midpoint of the Y-axis for vertical centering
+    y_mid = (min(strength_differences) + max(strength_differences)) / 2
 
+    # Annotate the selected run with team details, positioned halfway up the plot
+    if ANNOTATE_PLAYERS_ON_PLOT:
         plt.annotate(
-            f"Closest to 50-50\nRun {closest_to_50_50['run']}",
-            xy=(closest_to_50_50["run"], prob_team_a),
-            xytext=(closest_to_50_50["run"], prob_team_a + y_offset),
+            f"Selected Run\nRun {selected_run}\nDiff: {selected_diff:.1f}\n"
+            f"Team A: {team_a_players}\nTeam B: {team_b_players}",
+            xy=(selected_run, selected_diff),  # Point to the relevant run
+            xytext=(
+                selected_run - 5,
+                y_mid,
+            ),  # Shift annotation to the middle of the plot
+            arrowprops=dict(facecolor="black", arrowstyle="->"),
+            fontsize=10,
+            color="black",
+            bbox=dict(boxstyle="round,pad=0.3", edgecolor="gray", facecolor="white"),
+            horizontalalignment="center",  # Center-align text
+            verticalalignment="center",  # Vertically center the text box
+        )
+    else:
+        plt.annotate(
+            f"Selected Run\nRun {selected_run}\nDiff: {selected_diff:.1f}",
+            xy=(selected_run, selected_diff),
+            xytext=(selected_run + 1, selected_diff + 2),
             arrowprops=dict(facecolor="black", arrowstyle="->"),
             fontsize=10,
             color="black",
         )
 
-    # Annotate team details for the selected team
-    team_a_players = ", ".join(selected_team["team_a"]["Player"].tolist())
-    team_b_players = ", ".join(selected_team["team_b"]["Player"].tolist())
-    if LABEL_PLAYERS_ON_PLOT:
-        plt.figtext(
-            0.5,
-            0.01,
-            f"Selected Balanced Teams:\nTeam A: {team_a_players}\nTeam B: {team_b_players}",
-            wrap=True,
-            horizontalalignment="center",
-            fontsize=10,
-        )
-
+    plt.title("Team Strengths and Differences Across Simulations")
+    plt.xlabel("Simulation Run")
+    plt.ylabel("Strength")
+    plt.legend()
+    plt.grid()
     plt.show()
 
 
